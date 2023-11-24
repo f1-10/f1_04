@@ -46,13 +46,16 @@ class PurePursuit(object):
         self.x   = 0.0
         self.y   = 0.0
         self.yaw = 0.0
-        self.z   = 0.0 # object detection flag
+        self.z   = 0 # object detection flag
+
+        self.S1 = 0.1# threshold value
+        self.S2 = 0.25
         
    
     def waypoint_callback(self, carstate_msg):
         self.x = carstate_msg.x
         self.y = carstate_msg.y
-        self.yaw = np.arctan2(self.y, self.x)
+        self.yaw = np.arctan2(self.x, self.y)
         self.z = carstate_msg.z
 
         
@@ -85,13 +88,24 @@ class PurePursuit(object):
             k       = 1#0.12
             # angle_i = math.atan((k * 2 * self.wheelbase * math.sin(alpha)) / L) 
             # angle   = angle_i*2
-            angle = math.atan2(k * 2.0 * self.wheelbase * math.sin(alpha),L)
+            angle = 1.3 * math.atan2(k * 2.0 * self.wheelbase * math.sin(alpha),L)
             # ----------------- tuning this part as needed -----------------
+            if abs(alpha) < self.S1:
+                f_delta = 0
+                f_delta_deg = round(np.degrees(f_delta))
+            elif self.S1 <= abs(alpha) < self.S2:
+                # f_delta = round(np.clip(angle, -0.3, 0.3), 3)
+                f_delta = 1.5 * round(angle, 3)
+                f_delta_deg = round(np.degrees(f_delta))
+            elif abs(alpha) > self.S2:
+                f_delta = 2 * round(angle, 3)
+                f_delta_deg = round(np.degrees(f_delta))
 
-            # # f_delta = round(np.clip(angle, -0.3, 0.3), 3)
-            f_delta = round(angle, 3)
-
-            f_delta_deg = round(np.degrees(angle))
+            print("alpha:", np.degrees(alpha))
+            # f_delta_deg = round(np.degrees(f_delta))
+            # if f_delta_deg < 5:
+            #     f_delta = 0
+            
 
             ct_error = round(np.sin(alpha) * L, 3)
             print("Crosstrack Error: " + str(ct_error))
@@ -100,12 +114,22 @@ class PurePursuit(object):
 
             self.drive_msg.header.stamp = rospy.get_rostime()
             self.drive_msg.drive.steering_angle = f_delta
-
+            
             #----------------------velocity control---------------------------
             flag = self.z
-            if (flag == 1.0):
+            if flag == 1 or (self.x == 0 and self.y == 0):
                 self.drive_msg.drive.speed = 0
+            elif abs(alpha) < self.S1:
+                self.drive_msg.drive.speed = 1.5
+            elif self.S1 <= abs(alpha) < self.S2:
+                self.drive_msg.drive.speed = 0.9
+            elif abs(alpha) >= self.S2:
+                self.drive_msg.drive.speed = 0.8
+                
+            # print("alpha:",alpha)
+            print("Velocity:", self.drive_msg.drive.speed)
             #-----------------------------------------------------------------
+    
             self.ctrl_pub.publish(self.drive_msg)
         
             self.rate.sleep()

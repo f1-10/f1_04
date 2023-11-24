@@ -52,6 +52,8 @@ def process_frame(frame, outs, classes, CONF_THRESHOLD, NMS_THRESHOLD, target):
     indices = cv2.dnn.NMSBoxes(boxes, confidences, CONF_THRESHOLD, NMS_THRESHOLD)
     # CV2 4.2.0 's output is a 2-D list, convert it to 1-D lilst
     indices = [ind for index in indices for ind in index]
+    name = []
+    confidence_list = []
     for i in indices:
         confidence = confidences[i]
         box = boxes[i]
@@ -59,7 +61,9 @@ def process_frame(frame, outs, classes, CONF_THRESHOLD, NMS_THRESHOLD, target):
         top = box[1]
         width = box[2]
         height = box[3]
-        # if  classes[classIds[i]] == target:
-        detected_list.append([left, top, left + width, top + height, classIds[i], confidence])
-        bbx_frame = draw_prediction(frame, classes, classIds[i], confidences[i], left, top, left + width, top + height)
-    return detected_list, bbx_frame
+        if  classes[classIds[i]] == target:
+            detected_list.append([left, top, left + width, top + height, classIds[i], confidence])
+            bbx_frame = draw_prediction(frame, classes, classIds[i], confidences[i], left, top, left + width, top + height)
+            name.append(classes[classIds[i]])
+            confidence_list.append(confidence)
+    return detected_list, bbx_frame,name, confidence_list

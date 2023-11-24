@@ -7,10 +7,10 @@ def yolo_detect_image(image_frame, souce_path):
     source_path = souce_path + "Detector/"
     print()
     # Detect targets, whithin class of COCO dataset
-    target = "car"
+    target = "chair"
     # Define constants. CONF_THRESHOLD is confidence threshold. Only detection with confidence greater than this will be retained. NMS_THRESHOLD is used for non-max suppression
-    CONF_THRESHOLD = 0.3
-    NMS_THRESHOLD = 0.4
+    CONF_THRESHOLD = 0.2
+    NMS_THRESHOLD = 0.001
     # Create blob from image
     blob = cv2.dnn.blobFromImage(image_frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
     # Read COCO dataset classes
@@ -25,5 +25,5 @@ def yolo_detect_image(image_frame, souce_path):
     # Run forward pass
     outs = net.forward(out_names)
     # Process output and draw predictions
-    detected_list, bbx_frame = process_frame(image_frame, outs, classes, CONF_THRESHOLD, NMS_THRESHOLD, target)
-    return detected_list, bbx_frame
+    detected_list, bbx_frame, name, confidence_list = process_frame(image_frame, outs, classes, CONF_THRESHOLD, NMS_THRESHOLD, target)
+    return detected_list, bbx_frame, name, confidence_list
