@@ -65,8 +65,8 @@ class PurePursuit(object):
         
         while not rospy.is_shutdown():
 
-            self.path_points_x = self.x/1000
-            self.path_points_y = self.y/1000
+            self.path_points_x = self.x
+            self.path_points_y = self.y
             self.path_points_yaw_record = self.yaw
 
             curr_x = 0

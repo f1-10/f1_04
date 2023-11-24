@@ -1,5 +1,4 @@
-#! /usr/bin/env python3
-
+#! /usr/bin/env python
 from __future__ import print_function
 import sys
 import copy
@@ -24,7 +23,7 @@ import sys
 #----------------------------------------------------------------------
 # Super parameter
 # Path to the scripts
-souce_path = "/home/nx/f1_04/src/f1tenth_control/vicon_control/scripts/Detector/"
+souce_path = "./src/f1tenth-sim/scripts/"
 # souce_path = "./src/vehicle_drivers/gem_vision/gem_vision/camera_vision/scripts/"
 # Activate the function
 object_detection = True
@@ -33,87 +32,6 @@ lane_detection = True
 sys.path.append(souce_path)
 sys.path.append(souce_path + "Detector/")
 from yolo_detect_image import yolo_detect_image
-
-
-# nx@ubuntu:~/f1_04$ source devel/setup.bash
-# nx@ubuntu:~/f1_04$ 
-# nx@ubuntu:~/f1_04$ rostopic list
-# /D435I/color/camera_info
-# /D435I/color/image_raw
-# /D435I/color/metadata
-# /D435I/motion_module/parameter_descriptions
-# /D435I/motion_module/parameter_updates
-# /D435I/pointcloud/parameter_descriptions
-# /D435I/pointcloud/parameter_updates
-# /D435I/realsense2_camera_manager/bond
-# /D435I/rgb_camera/auto_exposure_roi/parameter_descriptions
-# /D435I/rgb_camera/auto_exposure_roi/parameter_updates
-# /D435I/rgb_camera/parameter_descriptions
-# /D435I/rgb_camera/parameter_updates
-# /D435I/stereo_module/parameter_descriptions
-# /D435I/stereo_module/parameter_updates
-# /clicked_point
-# /diagnostics
-# /initialpose
-# /laser_status
-# /move_base_simple/goal
-# /rosout
-# /rosout_agg
-# /scan
-# /tf
-# /tf_static
-# /urg_node/parameter_descriptions
-# /urg_node/parameter_updates
-# nx@ubuntu:~/f1_04$ rostopic list
-# /D435I/color/camera_info
-# /D435I/color/image_raw
-# /D435I/color/metadata
-# /D435I/motion_module/parameter_descriptions
-# /D435I/motion_module/parameter_updates
-# /D435I/pointcloud/parameter_descriptions
-# /D435I/pointcloud/parameter_updates
-# /D435I/realsense2_camera_manager/bond
-# /D435I/rgb_camera/auto_exposure_roi/parameter_descriptions
-# /D435I/rgb_camera/auto_exposure_roi/parameter_updates
-# /D435I/rgb_camera/parameter_descriptions
-# /D435I/rgb_camera/parameter_updates
-# /D435I/stereo_module/parameter_descriptions
-# /D435I/stereo_module/parameter_updates
-# /dev/null
-# /diagnostics
-# /laser_status
-# /rosout
-# /rosout_agg
-# /scan
-# /tf
-# /tf_static
-# /urg_node/parameter_descriptions
-# /urg_node/parameter_updates
-# /vesc/ackermann_cmd_mux/input/navigation
-# /vesc/ackermann_cmd_mux/input/safety
-# /vesc/ackermann_cmd_mux/input/teleop
-# /vesc/commands/motor/brake
-# /vesc/commands/motor/current
-# /vesc/commands/motor/duty_cycle
-# /vesc/commands/motor/position
-# /vesc/commands/motor/speed
-# /vesc/commands/motor/unsmoothed_speed
-# /vesc/commands/servo/position
-# /vesc/commands/servo/unsmoothed_position
-# /vesc/high_level/ackermann_cmd_mux/output
-# /vesc/joy
-# /vesc/joy/set_feedback
-# /vesc/low_level/ackermann_cmd_mux/active
-# /vesc/low_level/ackermann_cmd_mux/input/navigation
-# /vesc/low_level/ackermann_cmd_mux/input/safety
-# /vesc/low_level/ackermann_cmd_mux/input/teleop
-# /vesc/low_level/ackermann_cmd_mux/output
-# /vesc/low_level/ackermann_cmd_mux/parameter_descriptions
-# /vesc/low_level/ackermann_cmd_mux/parameter_updates
-# /vesc/low_level/ackermann_cmd_mux_nodelet_manager/bond
-# /vesc/odom
-# /vesc/sensors/core
-# /vesc/sensors/servo_position_command
 
 
 
@@ -152,10 +70,8 @@ class ImageConverter:
                 detected = 0
             else:
                 detected = 1
-            print("detected", 1)
         if lane_detection == True:
             midpoint_list, midpoint_img = self.simple_lane_detector(rgb_frame)
-            print("lane_detection", 1)
         # ----------------------------------------------------------------------
         # Publisher
         # Publish the detected object
