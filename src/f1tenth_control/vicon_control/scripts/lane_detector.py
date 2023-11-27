@@ -27,9 +27,9 @@ import shutil
 #----------------------------------------------------------------------
 # Super parameter
 # Path to the scripts
-souce_path = "/home/nx/f1_04/src/f1tenth_control/vicon_control/scripts/"
+souce_path = "/home/stanley/f1_10_ws/f1tenth-main/src/f1tenth-sim/scripts/"
 # Activate the function
-object_detection = False
+object_detection = True
 lane_detection = True
 # Choose transform mode of coordinate. 
 # "perspective_transform": 1  ; "trans_Pix2Camera": 2
@@ -40,7 +40,7 @@ sys.path.append(souce_path + "Detector/")
 params_file = souce_path + 'depth_params.txt'
 from yolo_detect_image import yolo_detect_image
 from depth_function import get_depth_for_pixel
-
+from depth_function import trans_Pix2Camera_v2
 def renew_output_folder(folder_path):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
@@ -69,8 +69,8 @@ class ImageConverter:
         sync.registerCallback(self.multi_callback)
         # Publisher
         self.midpoint_pose_pub = rospy.Publisher("/midpoint_pose", Point, queue_size=1)
-        # self.midpoint_img_pub = rospy.Publisher("/midpoint_img", Image, queue_size=1)
-        # self.object_detector_pub = rospy.Publisher("/object_detector", Image, queue_size=1)
+        self.midpoint_img_pub = rospy.Publisher("/midpoint_img", Image, queue_size=1)
+        self.object_detector_pub = rospy.Publisher("/object_detector", Image, queue_size=1)
 
     def multi_callback(self, rgb):
         try:
@@ -83,15 +83,28 @@ class ImageConverter:
         self.count += 1
         object_frame = rgb_frame
         detected = 0
-        if object_detection == True:
+        if self.count % 5 == 0 and object_detection: #if object_detection == True:
             object_list, object_frame, name, confidence_list = yolo_detect_image(rgb_frame, souce_path)
             print(object_list)
             if object_list == []:
                 detected = 0
             else:
                 detected = 1
-            print(name)
-            print(confidence_list)
+                print(name)
+                print(confidence_list)
+                print("count",self.count)
+                for detection in object_list:
+                # Unpack the detection. Each detection is [left, top, right, bottom, classId, confidence]
+                    left, top, right, bottom, classId, confidence = detection
+                    midpoint_x = (left + right) // 2
+                    midpoint_y = bottom
+                    depth = get_depth_for_pixel(midpoint_x, midpoint_y, params_file)
+                    if depth==0:
+                        pass
+                    print(f"Detected object: Class ID: {classId}, Confidence: {confidence:.2f}, Bottom Edge Midpoint: ({midpoint_x}, {midpoint_y})")
+                    # X, Y, Z = trans_Pix2Camera_v2(midpoint_x, midpoint_y, depth, params_file)
+                    # X, Y, Z = X/1000, Y/1000, Z/1000
+                    # print(f"Midpoint depth ({midpoint_x}, {midpoint_y},Z, depth): {X}, {Y}, {Z}")
         if lane_detection == True:
             midpoint, midpoint_img = self.simple_lane_detector(rgb_frame)
 
@@ -103,7 +116,8 @@ class ImageConverter:
                 # print(f"perspective_tran ({midpoint[0]}, {midpoint[1]}): {X}, {Y}")
             elif transform_mode == 2:
                 depth = get_depth_for_pixel(midpoint[0], midpoint[1], params_file)
-                X, Y, Z = self.trans_Pix2Camera(midpoint[0], midpoint[1], depth/1000)
+                X, Y, Z = trans_Pix2Camera_v2(midpoint[0], midpoint[1], depth/1000, params_file)
+                # X, Y, Z = self.trans_Pix2Camera(midpoint[0], midpoint[1], depth/1000)
                 # print(f"trans_Pix2Camera ({midpoint[0]}, {midpoint[1]}): {X}, {Y}")
         # ----------------------------------------------------------------------
         # Publisher
@@ -121,24 +135,24 @@ class ImageConverter:
 
         # TODO: Comment following when running on F1-10 to save computational resource
         # Output images result
-        # if self.count % 5 == 0:
-        #     output_file_path = midpoint_path + str(self.count) + ".jpg"
-        #     cv2.imwrite(output_file_path, midpoint_img)
-        #     output_file_path = rgb_path + str(self.count) + ".jpg"
-        #     cv2.imwrite(output_file_path, rgb_frame)
-        #     output_file_path = midpoint_path +  "1.jpg"
-        #     cv2.imwrite(output_file_path, midpoint_img)
-        #     output_file_path = midpoint_path +  "2.jpg"
-        #     cv2.imwrite(output_file_path, rgb_frame)
-        #     output_file_path = object_path + str(self.count) + ".jpg"
-        #     cv2.imwrite(output_file_path, object_frame)
+        if self.count % 5 == 0:
+            output_file_path = midpoint_path + str(self.count) + ".jpg"
+            cv2.imwrite(output_file_path, midpoint_img)
+            output_file_path = rgb_path + str(self.count) + ".jpg"
+            cv2.imwrite(output_file_path, rgb_frame)
+            output_file_path = midpoint_path +  "1.jpg"
+            cv2.imwrite(output_file_path, midpoint_img)
+            output_file_path = midpoint_path +  "2.jpg"
+            cv2.imwrite(output_file_path, rgb_frame)
+            output_file_path = object_path + str(self.count) + ".jpg"
+            cv2.imwrite(output_file_path, object_frame)
             
-        # # Publish the detected object
-        # object_img = CvBridge().cv2_to_imgmsg(object_frame, "bgr8")
-        # self.object_detector_pub.publish(object_img)
-        # # Publish the image
-        # ros_img = CvBridge().cv2_to_imgmsg(midpoint_img, "bgr8")
-        # self.midpoint_img_pub.publish(ros_img)
+        # Publish the detected object
+        object_img = CvBridge().cv2_to_imgmsg(object_frame, "bgr8")
+        self.object_detector_pub.publish(object_img)
+        # Publish the image
+        ros_img = CvBridge().cv2_to_imgmsg(midpoint_img, "bgr8")
+        self.midpoint_img_pub.publish(ros_img)
 
 
     def simple_lane_detector(self, frame):
