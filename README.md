@@ -1,6 +1,12 @@
 # f1_04
 The code implemented on the real vehicle
 
+Initial setup:
+
+download weights from :https://pjreddie.com/media/files/yolov3-tiny.weights
+
+(place it in the Detector folder)
+
 Step 1  launch the sensor
 ```bash
 source devel/setup.bash
