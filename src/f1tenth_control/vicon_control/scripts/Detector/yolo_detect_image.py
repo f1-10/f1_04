@@ -7,9 +7,9 @@ def yolo_detect_image(image_frame, souce_path):
     source_path = souce_path + "Detector/"
     print()
     # Detect targets, whithin class of COCO dataset
-    target = "chair"
+    target = "apple"
     # Define constants. CONF_THRESHOLD is confidence threshold. Only detection with confidence greater than this will be retained. NMS_THRESHOLD is used for non-max suppression
-    CONF_THRESHOLD = 0.2
+    CONF_THRESHOLD = 0.4
     NMS_THRESHOLD = 0.001
     # Create blob from image
     blob = cv2.dnn.blobFromImage(image_frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
@@ -17,7 +17,7 @@ def yolo_detect_image(image_frame, souce_path):
     with open(source_path + 'coco.txt', 'rt') as f:
         classes = f.read().rstrip('\n').split('\n')
     # Load the network with YOLOv3 weights and config using darknet framework
-    net = cv2.dnn.readNet(source_path + "yolov3.weights", source_path + "yolov3.cfg", "darknet")
+    net = cv2.dnn.readNet(source_path + "yolov3-tiny.weights", source_path + "yolov3-tiny.cfg", "darknet")
     # Get the output layer names used for forward pass
     out_names = net.getUnconnectedOutLayersNames()
     # Set the input
